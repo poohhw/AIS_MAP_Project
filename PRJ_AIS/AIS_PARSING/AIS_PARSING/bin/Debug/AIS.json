@@ -1,0 +1,73 @@
+//{
+//  "compilerOptions": {
+//    "noImplicitAny": false,
+//    "noEmitOnError": true,
+//    "removeComments": false,
+//    "sourceMap": true,
+//    "target": "es5"
+//  },
+//  "exclude": [
+//    "node_modules",
+//    "wwwroot"
+//  ]
+//}
+{
+  "MessageType": {
+    "01": "Position Report Class A",
+    "02": "Position Report Class A (Assigned schedule)",
+    "03": "Position Report Class A (Response to interrogation)",
+    "04": "Base Station Report",
+    "05": "Static and Voyage Related Data",
+    "06": "Binary Addressed Message",
+    "07": "Binary Acknowledge",
+    "08": "Binary Broadcast Message",
+    "09": "Standard SAR Aircraft Position Report",
+    "10": "UTC and Date Inquiry",
+    "11": "UTC and Date Response",
+    "12": "Addressed Safety Related Message",
+    "13": "Safety Related Acknowledgement",
+    "14": "Safety Related Broadcast Message",
+    "15": "Interrogation",
+    "16": "Assignment Mode Command",
+    "17": "DGNSS Binary Broadcast Message",
+    "18": "Standard Class B CS Position Report",
+    "19": "Extended Class B Equipment Position Report",
+    "20": "Data Link Management",
+    "21": "Aid-to-Navigation Report",
+    "22": "Channel Management",
+    "23": "Group Assignment Command",
+    "24": "Static Data Report",
+    "25": "Single Slot Binary Message",
+    "26": "Multiple Slot Binary Message With Communications State",
+    "27": "Position Report For Long-Range Applications"
+
+  },
+  "Navigation Status": {
+    "00": "Under way using engine",
+    "01": "At anchor",
+    "02": "Not under command",
+    "03": "Restricted manoeuverability",
+    "04": "Constrained by her draught",
+    "05": "Moored",
+    "06": "Aground",
+    "07": "Engaged in Fishing",
+    "08": "Under way sailing",
+    "09": "Reserved for future amendment of Navigational Status for HSC",
+    "10": "Reserved for future amendment of Navigational Status for WIG",
+    "11": "Reserved for future use",
+    "12": "Reserved for future use",
+    "13": "Reserved for future use",
+    "14": "AIS-SART is active",
+    "15": "Not defined (default)"
+  },
+  "Maneuver Indicator": {
+    "00": "Not available (default)",
+    "01": "No special maneuver",
+    "02": "Special maneuver (such as regional passing arrangement)"
+  },
+  "RAIM flag": {
+    "00": "RAIM not in use (default)",
+    "01": "RAIM in use"
+  }
+
+}

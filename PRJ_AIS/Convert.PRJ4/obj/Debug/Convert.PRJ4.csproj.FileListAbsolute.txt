@@ -1,0 +1,9 @@
+D:\GCSC\C#\Convert.PRJ4\bin\Debug\Convert.PRJ4.dll
+D:\GCSC\C#\Convert.PRJ4\bin\Debug\Convert.PRJ4.pdb
+D:\GCSC\C#\Convert.PRJ4\bin\Debug\DotSpatial.Projections.dll
+D:\GCSC\C#\Convert.PRJ4\bin\Debug\DotSpatial.Projections.xml
+D:\GCSC\C#\Convert.PRJ4\obj\Debug\Convert.PRJ4.csprojAssemblyReference.cache
+D:\GCSC\C#\Convert.PRJ4\obj\Debug\Convert.PRJ4.csproj.CoreCompileInputs.cache
+D:\GCSC\C#\Convert.PRJ4\obj\Debug\Convert.PRJ4.csproj.CopyComplete
+D:\GCSC\C#\Convert.PRJ4\obj\Debug\Convert.PRJ4.dll
+D:\GCSC\C#\Convert.PRJ4\obj\Debug\Convert.PRJ4.pdb
