@@ -10,11 +10,22 @@ using System.Drawing.Drawing2D;
 
 namespace MapView
 {
+    public struct customPenStyle
+    {
+        public const int PS_SOLID = 0;
+        public const int PS_DASH = 1;
+        public const int PS_DOT = 2;
+        public const int PS_DASHDOT = 3;
+        public const int NULL_BRUSH = 5;
+    }
+
+
+
     public class ShapeMapView : UserControl
     {
         public string FilePath;
         //다시 그리기 변수 true : 다시 그리기, false : 다시 그리기 아님.
-        private bool reDraw = true;
+        public bool reDraw = true;
         private Shapefile _shapeFile;
         /*Client Screen Value*/
         private double _ClientWidth;
@@ -124,7 +135,8 @@ namespace MapView
 
             using (Graphics g = this.CreateGraphics())
             {
-                LoadView(g);
+                //LoadView(g);
+                LoadView2(g);
                 //LodeViewBufferGraphics();
             }
 
@@ -222,9 +234,81 @@ namespace MapView
                 g.Clear(Color.FromArgb(255, 178, 209, 255));
                 g.DrawImage(bmp, movePoint.X, movePoint.Y);
 
-                reDraw = false;
+                //reDraw = false;
             }
             g.Dispose();
+        }
+
+        protected static int ColorToGDIColor(Color c)
+        {
+            int color = 0;
+            color = c.B & 0xff;
+            color = (color << 8) | (c.G & 0xff);
+            color = (color << 8) | (c.R & 0xff);
+            return color;
+        }
+
+        private void LoadView2(Graphics g)
+        {
+            IntPtr dc = IntPtr.Zero;
+            IntPtr selectPen = IntPtr.Zero;
+            IntPtr selectBrush = IntPtr.Zero;
+
+            if (reDraw)
+            {
+                //펜 색
+                selectPen = NativeGDI.CreatePen(customPenStyle.PS_SOLID, 1, ColorToGDIColor(Color.FromArgb(165,165,165)));
+                //배경 색
+                selectBrush = NativeGDI.CreateSolidBrush(ColorToGDIColor(Color.FromArgb(255,178,125)));
+
+                bmp = new Bitmap((int)_ClientWidth, (int)_ClientHeight);
+                using (Graphics gOff = Graphics.FromImage(bmp))
+                {
+                    gOff.FillRectangle(new SolidBrush(Color.FromArgb(255, 178, 209, 255)), 0, 0, bmp.Width, bmp.Height);
+                    gOff.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                    gOff.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+
+                    dc = gOff.GetHdc();
+
+                    NativeGDI.SelectObject(dc, selectPen);
+                    NativeGDI.SelectObject(dc, selectBrush);
+
+
+                    foreach (ShapePolygon item in lstPolygon)
+                    {
+                        foreach (PointD[] polygon in item.Parts)
+                        {
+                            List<Point> points = new List<Point>();
+                            foreach (PointD point in polygon)
+                            {
+                                int screenX = Convert.ToInt32(GetGisToScreen(point).X);
+                                int screenY = Convert.ToInt32(GetGisToScreen(point).Y);
+
+                                points.Add(new Point(screenX, screenY));
+                            }
+                            Point[] pointscoord = points.ToArray();
+
+                            NativeGDI.DrawPolygon(dc, pointscoord, pointscoord.Length);
+                        }
+                    }
+
+                    
+                    reDraw = false;
+                    NativeGDI.DeleteDC(dc);
+                    NativeGDI.DeleteDC(selectPen);
+                    NativeGDI.DeleteDC(selectBrush);
+                    Invalidate();
+
+                }
+            }
+            else
+            {
+                g.Clear(Color.FromArgb(255, 178, 209, 255));
+                g.DrawImage(bmp, movePoint.X, movePoint.Y);
+              
+            }
+           
+            //g.Dispose();
         }
 
         /// <summary>
@@ -297,9 +381,14 @@ namespace MapView
 
         private void shapeView_MouseUp(object sender, MouseEventArgs e)
         {
+
             isMouseDown = false;
-            lastPoint.X += e.X - clickPoint.X;
-            lastPoint.Y += e.Y - clickPoint.Y;
+
+            lastPoint.X += movePoint.X;
+            lastPoint.Y += movePoint.Y;
+
+            movePoint.X = 0;
+            movePoint.Y = 0;
 
             //마우스 드래그 드롭 이벤트가 끝나면 맵을 다시 그린다.
             reDraw = true;
@@ -309,36 +398,16 @@ namespace MapView
 
         private void shapeView_MouseMove(object sender, MouseEventArgs e)
         {
-            //UserControl panel = (UserControl)sender;
-            //g = panel.CreateGraphics();
             if (isMouseDown)
             {
-                reDraw = false;
-                //Image img = bmp as Image;                
-                //g.FillRectangle(new SolidBrush(Color.White),lastPoint.X, lastPoint.Y, bmp.Width, bmp.Height);
-
-                // movePoint = new Point((e.X - currentPoint.X) + lastPoint.X, (e.Y - currentPoint.Y) + lastPoint.Y);
+                reDraw = false;               
                 movePoint = new Point((e.X - clickPoint.X), (e.Y - clickPoint.Y));
-                //g.Clear(Color.White);
-                //gOff.SetClip(g);
-
-                //Matrix mx = new Matrix();
-                //mx.Translate(e.X - currentPoint.X, e.Y - currentPoint.Y);
-                //gOff.Transform = mx;
-
-
-
                 Invalidate();
-                //g.DrawImage(bmp, movePoint.X, movePoint.Y);
-                //Console.WriteLine(e.X.ToString() + " - " + currentPoint.X.ToString());
-                //Console.WriteLine(e.X - currentPoint.X);
-                //Console.WriteLine(movePoint.ToString());
-
+             
             }
             else
             {
                 PointD coord = GetScreenToGis(e.Location);
-                //label1.Text = coord.X.ToString() + "," + coord.Y.ToString();
             }
         }
 

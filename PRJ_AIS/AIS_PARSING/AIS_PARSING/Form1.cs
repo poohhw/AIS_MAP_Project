@@ -418,6 +418,7 @@ namespace AIS_PARSING
 
         private void button3_Click(object sender, EventArgs e)
         {
+            if (client == null || !client.Connected) return;
             //소켓 종료
             client.Shutdown(SocketShutdown.Both);
             client.BeginDisconnect(true, new AsyncCallback(DisconnectCallback), client);
@@ -451,11 +452,6 @@ namespace AIS_PARSING
             sb.AppendFormat("[LongLat]:X:{0},Y:{1} ", WGS8s.X.ToString(), WGS8s.Y.ToString());
             label2.Text = sb.ToString();
 
-            foreach (var item in lstData)
-            {
-                
-            }
-            
            
         }
 
@@ -537,6 +533,98 @@ namespace AIS_PARSING
                 nSecond = 0;
             }
             
+        }
+
+        private void shapeMapView1_Resize(object sender, EventArgs e)
+        {
+            shapeMapView1.reDraw = true;
+            shapeMapView1.Refresh();
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+            
+            Application.Exit();
+        }
+
+        private void label5_Click(object sender, EventArgs e)
+        {
+            this.WindowState = FormWindowState.Maximized;
+        }
+
+        private void label5_Click_1(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Normal)
+            {
+                this.WindowState = FormWindowState.Maximized;
+                label5.Text = "▣";
+            }
+            else if(this.WindowState == FormWindowState.Maximized)
+            {
+                this.WindowState = FormWindowState.Normal;
+                label5.Text = "□";
+            }
+        }
+
+        private void label6_Click(object sender, EventArgs e)
+        {
+            this.WindowState = FormWindowState.Minimized;
+        }
+
+        private void label3_MouseHover(object sender, EventArgs e)
+        {
+            Label lbl = (Label)sender;
+            lbl.BackColor = Color.FromArgb(62,109,181);
+            
+        }
+
+        private void label3_MouseLeave(object sender, EventArgs e)
+        {
+            Label lbl = (Label)sender;
+            lbl.BackColor = Color.Transparent;
+        }
+
+        Point selectPoint = new Point(0, 0);
+        private void panel1_MouseDown(object sender, MouseEventArgs e)
+        {
+            if(e.Button == MouseButtons.Left)
+            {
+                selectPoint = e.Location;
+            }
+        }
+
+        private void panel1_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                this.Location = new Point(this.Location.X + e.X - selectPoint.X, this.Location.Y + e.Y - selectPoint.Y);
+            }
+        }
+
+        private void panel1_DoubleClick(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Normal)
+            {
+                this.WindowState = FormWindowState.Maximized;
+                label5.Text = "▣";
+            }
+            else if (this.WindowState == FormWindowState.Maximized)
+            {
+                this.WindowState = FormWindowState.Normal;
+                label5.Text = "□";
+            }
+        }
+
+        private void shapeMapView1_MouseMove(object sender, MouseEventArgs e)
+        {
+            PointD GisPointD = shapeMapView1.GetScreenToGis(e.Location);
+
+            PointD WGS8s = shapeMapView1.ConvertCRS(GisPointD);
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("[Screen]:X:{0},Y:{1} ", e.Location.X.ToString(), e.Location.Y.ToString());
+            sb.AppendFormat("[Shape]:X:{0},Y:{1} ", GisPointD.X.ToString(), GisPointD.Y.ToString());
+            sb.AppendFormat("[LongLat]:X:{0},Y:{1} ", WGS8s.X.ToString(), WGS8s.Y.ToString());
+            label2.Text = sb.ToString();
         }
     }
 

@@ -28,3 +28,4 @@ D:\GCSC\C#\PRJ_AIS\MapView\obj\Debug\MapView.csproj.CoreCompileInputs.cache
 D:\GCSC\C#\PRJ_AIS\MapView\obj\Debug\MapView.csproj.CopyComplete
 D:\GCSC\C#\PRJ_AIS\MapView\obj\Debug\MapView.dll
 D:\GCSC\C#\PRJ_AIS\MapView\obj\Debug\MapView.pdb
+D:\GCSC\C#\PRJ_AIS\MapView\obj\Debug\MapView.csprojAssemblyReference.cache
