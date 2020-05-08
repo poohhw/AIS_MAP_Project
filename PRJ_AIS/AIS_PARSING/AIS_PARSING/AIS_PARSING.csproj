@@ -148,5 +148,8 @@
   <ItemGroup>
     <None Include="Resources\iconfinder_cancel_1315087.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\ship2.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

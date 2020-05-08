@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -49,7 +50,7 @@ namespace AIS_PARSING
 
             client = new Socket(SocketType.Stream, ProtocolType.Tcp);
             //비동기 소켓 연결.
-            client.BeginConnect("155.155.4.103",10001,Connect, client);
+            client.BeginConnect("127.0.0.1",7000,Connect, client);
 
             timer1.Enabled = true;
         }
@@ -64,7 +65,10 @@ namespace AIS_PARSING
             Socket client = (Socket)result.AsyncState;
             client.EndConnect(result);
 
+            //byte[] byteMsg = Encoding.Default.GetBytes("1");
+            //client.Send(byteMsg, 0, byteMsg.Length,SocketFlags.None);
             client.BeginReceive(readBuffer, 0, readBuffer.Length, SocketFlags.None, Receive, client);
+
         }
         /// <summary>
         /// 수신 완료 콜백
@@ -457,7 +461,8 @@ namespace AIS_PARSING
 
         private void shapeMapView1_Paint(object sender, PaintEventArgs e)
         {
-            Image img = Properties.Resources.ship;
+            Image img = Properties.Resources.ship2;
+
             foreach (var item in lstData)
             {
                 if (item.MessageType.Contains("[03]") || item.MessageType.Contains("[01]"))
@@ -476,9 +481,17 @@ namespace AIS_PARSING
 
                         RectangleF rc = new RectangleF(Convert.ToSingle(Math.Round(screenPoint.X, 2)), Convert.ToSingle(Math.Round(screenPoint.Y, 2)), 15, 15);
 
+                        
                         item.rcImage = rc;
 
-                        e.Graphics.DrawImage(img, Convert.ToSingle(Math.Round(screenPoint.X, 2)), Convert.ToSingle(Math.Round(screenPoint.Y, 2)), 15, 15);
+                        PointF p = new PointF((float)screenPoint.X, (float)screenPoint.Y);
+
+                        Matrix matrix = new Matrix();
+                        matrix.RotateAt(45, p);
+
+                        e.Graphics.Transform = matrix;
+
+                        e.Graphics.DrawImage(img, Convert.ToSingle(Math.Round(screenPoint.X, 2)), Convert.ToSingle(Math.Round(screenPoint.Y, 2)), 10, 10);
                         
                     }
                     catch(Exception ex)
