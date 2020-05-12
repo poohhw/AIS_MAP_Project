@@ -7,3 +7,5 @@ D:\GCSC\C#\PRJ_AIS\Convert.PRJ4\obj\Debug\CrazyCRS.csproj.CoreCompileInputs.cach
 D:\GCSC\C#\PRJ_AIS\Convert.PRJ4\obj\Debug\CrazyCRS.csproj.CopyComplete
 D:\GCSC\C#\PRJ_AIS\Convert.PRJ4\obj\Debug\Convert.PRJ4.dll
 D:\GCSC\C#\PRJ_AIS\Convert.PRJ4\obj\Debug\Convert.PRJ4.pdb
+D:\GCSC\C#\PRJ_AIS\Convert.PRJ4\bin\Debug\Catfood.Shapefile.dll
+D:\GCSC\C#\PRJ_AIS\Convert.PRJ4\bin\Debug\Catfood.Shapefile.pdb

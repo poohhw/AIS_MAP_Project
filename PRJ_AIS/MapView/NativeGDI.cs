@@ -8,9 +8,18 @@ using System.Threading.Tasks;
 
 namespace MapView
 {
-    class NativeGDI
+    public class NativeGDI
     {
         public const int SRCCOPY = 0xcc0020;
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetDC(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        public static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+        [DllImport("gdi32.dll")]
+        public static extern int GetPixel(IntPtr hDC, int x, int y);
+        [DllImport("gdi32.dll")]
+        public  static extern int SetPixel(IntPtr hDC, int x, int y, int color);
 
         [DllImport("gdi32.dll")]
         public static extern long BitBlt(IntPtr hdcDest, int nXDest, int nYDest, int nWidth, int nHeight, IntPtr hdcSrc, int nXSrc, int nYSrc, int dwRop);

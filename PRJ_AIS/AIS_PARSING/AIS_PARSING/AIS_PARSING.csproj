@@ -117,6 +117,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Convert.PRJ4\CrazyCRS.csproj">
+      <Project>{FCE2E99A-4C7C-4166-A6C5-4A615CBA3E39}</Project>
+      <Name>CrazyCRS</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\MapView\MapView.csproj">
       <Project>{1c2440ce-aed0-4308-9393-47c941f1ffe2}</Project>
       <Name>MapView</Name>
@@ -150,6 +154,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\ship2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\ship3.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

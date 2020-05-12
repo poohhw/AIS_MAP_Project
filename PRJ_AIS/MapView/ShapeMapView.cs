@@ -26,6 +26,10 @@ namespace MapView
         public string FilePath;
         //다시 그리기 변수 true : 다시 그리기, false : 다시 그리기 아님.
         public bool reDraw = true;
+
+        public bool isMouseDown = false;
+        private Point clickPoint;
+
         private Shapefile _shapeFile;
         /*Client Screen Value*/
         private double _ClientWidth;
@@ -39,6 +43,44 @@ namespace MapView
         private Double _Ratio; // Screen 값과 Shp 파일의 비율
         private Double _ZoomFactor = 1; // 확대 축소 배율 값. 기본 = 1
 
+        private Color _LineColor;
+        private Color _BrushColor;
+        private Color _BGColor;
+
+        public Color LineColor
+        {
+            get {
+                if(_LineColor.Name == "0")
+                {
+                    _LineColor = Color.FromArgb(165, 165, 165);
+                }
+                return _LineColor;
+            }
+            set { _LineColor = value; }
+        }
+        public Color BrushColor
+        {
+            get {
+                if (_BrushColor.Name == "0")
+                {
+                    _BrushColor = Color.FromArgb(255, 178, 125);
+                }
+                return _BrushColor;
+            }
+            set { _BrushColor = value; }
+        }
+        public Color BGColor
+        {
+            get
+            {
+                if (_BGColor.Name == "Info")
+                {
+                    _BGColor = Color.FromArgb(255, 178, 209, 255);
+                }
+                return _BGColor;
+            }
+            set { _BGColor = value; }
+        }
 
 
         //MouseMove 이벤트를 통한 이동값을 저장하는 변수.
@@ -257,14 +299,14 @@ namespace MapView
             if (reDraw)
             {
                 //펜 색
-                selectPen = NativeGDI.CreatePen(customPenStyle.PS_SOLID, 1, ColorToGDIColor(Color.FromArgb(165,165,165)));
+                selectPen = NativeGDI.CreatePen(customPenStyle.PS_SOLID, 1, ColorToGDIColor(LineColor)); //Color.FromArgb(165, 165, 165)
                 //배경 색
-                selectBrush = NativeGDI.CreateSolidBrush(ColorToGDIColor(Color.FromArgb(255,178,125)));
+                selectBrush = NativeGDI.CreateSolidBrush(ColorToGDIColor(BrushColor)); //Color.FromArgb(255,178,125)
 
                 bmp = new Bitmap((int)_ClientWidth, (int)_ClientHeight);
                 using (Graphics gOff = Graphics.FromImage(bmp))
                 {
-                    gOff.FillRectangle(new SolidBrush(Color.FromArgb(255, 178, 209, 255)), 0, 0, bmp.Width, bmp.Height);
+                    //gOff.FillRectangle(new SolidBrush(BGColor), 0, 0, bmp.Width, bmp.Height);
                     gOff.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                     gOff.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
 
@@ -303,7 +345,7 @@ namespace MapView
             }
             else
             {
-                g.Clear(Color.FromArgb(255, 178, 209, 255));
+                g.Clear(BGColor); //Color.FromArgb(255, 178, 209, 255)
                 g.DrawImage(bmp, movePoint.X, movePoint.Y);
               
             }
@@ -369,8 +411,6 @@ namespace MapView
 
 
 
-        private bool isMouseDown = false;
-        private Point clickPoint;
         private void shapeView_MouseDown(object sender, MouseEventArgs e)
         {
             isMouseDown = true;
@@ -434,21 +474,29 @@ namespace MapView
             this.SuspendLayout();
             // 
             // ShapeMapView
-            //         
-
+            // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.SystemColors.Info;
             this.Name = "ShapeMapView";
             this.Size = new System.Drawing.Size(476, 353);
             this.Load += new System.EventHandler(this.shapeView_Load);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.shapeView_Paint);
+            this.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.ShapeMapView_MouseDoubleClick);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.shapeView_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.shapeView_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.shapeView_MouseUp);
             this.ResumeLayout(false);
-            this.PerformLayout();
+
         }
+
+        private void ShapeMapView_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+
+            //Color c = GetColorFromScreen(e.Location);
+
+            //MessageBox.Show(c.Name);
+        }
+
     }
 }
 

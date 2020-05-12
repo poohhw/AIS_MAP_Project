@@ -1,5 +1,7 @@
 ﻿
 using Catfood.Shapefile;
+using CrazyCRS;
+using MapView;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 
@@ -40,17 +43,18 @@ namespace AIS_PARSING
                 string json2 = r.ReadToEnd();
                 json = JObject.Parse(json2);
             }
+            toolTip1.SetToolTip(label7, "설정한 분 후 도착위치를 맵에 화살표로 표시합니다.");
         }
 
 
         private void btnAIS_Click(object sender, EventArgs e)
-        {           
+        {
             Grid1.Rows.Clear();
             txtData.Text = string.Empty;
 
             client = new Socket(SocketType.Stream, ProtocolType.Tcp);
             //비동기 소켓 연결.
-            client.BeginConnect("127.0.0.1",7000,Connect, client);
+            client.BeginConnect("127.0.0.1", 7000, Connect, client);
 
             timer1.Enabled = true;
         }
@@ -88,7 +92,7 @@ namespace AIS_PARSING
             }
         }
 
-        public string GetLastResult(string pValue, int idx,AIS_Data pData)
+        public string GetLastResult(string pValue, int idx, AIS_Data pData)
         {
             string vReturn = string.Empty;
             switch (idx.ToString())
@@ -159,13 +163,13 @@ namespace AIS_PARSING
                         vReturn = "-" + (Math.Round(Convert.ToDouble(vReturn) / 600000.0, 5, MidpointRounding.AwayFromZero)).ToString();
                     }
                     pData.Longitude = vReturn;
-                        
+
                     break;
 
                 case "8": //위도(Latitude)
                     vReturn = Convert.ToInt32(pValue, 2).ToString("00");
                     //음수 양수 구분법.(부호비트가 0 일때)
-                    if (pValue.StartsWith("0")) 
+                    if (pValue.StartsWith("0"))
                     {
                         vReturn = (Math.Round(Convert.ToDouble(vReturn) / 600000.0, 6, MidpointRounding.ToEven)).ToString();
                     }
@@ -270,7 +274,7 @@ namespace AIS_PARSING
             try
             {
                 string[] arrValue = pValue.Split(new string[] { "," }, StringSplitOptions.None);
-                
+
 
                 if (arrValue.Length == 7)
                 {
@@ -309,14 +313,14 @@ namespace AIS_PARSING
 
                     string[] vResult = GetDataPayloadBinary(pDataPayload);
 
-                    Console.WriteLine("원본:" + pDataPayload.Length.ToString());
+                    //4("원본:" + pDataPayload.Length.ToString());
 
 
                     int nRow = Grid1.Rows.Add();
 
                     AIS_Data vData = new AIS_Data();
                     for (int j = 0; j < vResult.Length; j++)
-                    {                        
+                    {
                         Grid1.Rows[nRow].Cells[j].Value = GetLastResult(vResult[j], j, vData);
                     }
 
@@ -327,7 +331,7 @@ namespace AIS_PARSING
 
             catch (Exception ex)
             {
-                Console.WriteLine("ERROR: {0}:{1}", ex.Message,pValue);
+                //Console.WriteLine("ERROR: {0}:{1}", ex.Message, pValue);
                 //MessageBox.Show(ex.Message);
             }
         }
@@ -374,7 +378,7 @@ namespace AIS_PARSING
             {
                 PasingAndDraw();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 //
             }
@@ -411,11 +415,11 @@ namespace AIS_PARSING
 
             foreach (char c in arrData[0])
             {
-                nCheckSum ^= Convert.ToByte(c);                
+                nCheckSum ^= Convert.ToByte(c);
             }
             //수신된 체크섬 값            
             string hex = Convert.ToInt32(arrData[1], 16).ToString();
-            
+
             //수신된 값과 계산한 체크섬 값을 비교해서 일치하면 true / 불일치 하면 false;
             return hex.Equals(nCheckSum.ToString());
         }
@@ -436,13 +440,13 @@ namespace AIS_PARSING
             client.EndDisconnect(result);
 
             // Signal that the disconnect is complete.
-            Console.WriteLine(client.Connected.ToString());
+            //Console.WriteLine(client.Connected.ToString());
         }
 
 
         private void button4_Click(object sender, EventArgs e)
         {
-            
+
         }
 
         private void shapeMapView1_MouseClick(object sender, MouseEventArgs e)
@@ -456,12 +460,24 @@ namespace AIS_PARSING
             sb.AppendFormat("[LongLat]:X:{0},Y:{1} ", WGS8s.X.ToString(), WGS8s.Y.ToString());
             label2.Text = sb.ToString();
 
-           
+
         }
+
+        private bool CompareColor(Color src, Color dest)
+        {
+            //두 색상 구조체의 ARGB 값만 비교한다.
+            bool bReturn = src.ToArgb().Equals(dest.ToArgb());
+            return bReturn;
+        }
+
 
         private void shapeMapView1_Paint(object sender, PaintEventArgs e)
         {
-            Image img = Properties.Resources.ship2;
+            e.Graphics.CompositingQuality = CompositingQuality.HighQuality;
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            Image img = Properties.Resources.ship3;
+
+            if (shapeMapView1.isMouseDown) return;
 
             foreach (var item in lstData)
             {
@@ -472,40 +488,108 @@ namespace AIS_PARSING
                         PointD point = new PointD();
                         point.X = Convert.ToDouble(item.Longitude);
                         point.Y = Convert.ToDouble(item.Latitude);
-
                         PointD screenPoint = shapeMapView1.ConvertLongLatToScreen(point);
+
+                        Color bgColor = ScreenColor((int)screenPoint.X, (int)screenPoint.Y);
+
+                        if (!CompareColor(bgColor, shapeMapView1.BGColor)) //Color.FromArgb(255, 178, 209, 255)
+                        {
+                            //수신 좌표가 위치가 바다가 아닐 경우 그리지 않는다.
+                            continue;
+                        }
+
+                        Console.WriteLine("배경색:" + bgColor.ToString());
+
+                        Matrix m = e.Graphics.Transform;
+
+                        PointF p = new PointF((float)screenPoint.X, (float)screenPoint.Y);
+                        Matrix matrix = new Matrix();
+                        matrix.RotateAt(Convert.ToSingle(item.COG), p);
+                        e.Graphics.Transform = matrix;
+
+
+
 
                         item.ScreenX = screenPoint.X.ToString();
                         item.ScreenX = screenPoint.Y.ToString();
 
 
-                        RectangleF rc = new RectangleF(Convert.ToSingle(Math.Round(screenPoint.X, 2)), Convert.ToSingle(Math.Round(screenPoint.Y, 2)), 15, 15);
+                        Rectangle rc = new Rectangle((int)(Math.Round(screenPoint.X, 2)), (int)Math.Round(screenPoint.Y, 2), 10, 10);
 
-                        
+
                         item.rcImage = rc;
 
-                        PointF p = new PointF((float)screenPoint.X, (float)screenPoint.Y);
 
-                        Matrix matrix = new Matrix();
-                        matrix.RotateAt(45, p);
+                        PointD SOGpointD = SOGConvertScreen(item.Longitude, item.Latitude, item.SOG, Convert.ToDouble(numericUpDown1.Value));
 
-                        e.Graphics.Transform = matrix;
+                        PointF SOGpoint = new PointF((float)SOGpointD.X, (float)SOGpointD.Y);
 
-                        e.Graphics.DrawImage(img, Convert.ToSingle(Math.Round(screenPoint.X, 2)), Convert.ToSingle(Math.Round(screenPoint.Y, 2)), 10, 10);
-                        
+                        PointF screenPointF = new PointF(Convert.ToSingle(Math.Round(screenPoint.X, 2)), Convert.ToSingle(Math.Round(screenPoint.Y, 2)));
+
+
+
+                        RectangleF SOGrect = new RectangleF(SOGpoint, new SizeF(10, 10));  //SOG 사각형.
+
+
+                        RectangleF ScreenRect = new RectangleF(screenPointF, new SizeF(10, 10)); //Ship 사각형.
+
+
+                        //e.Graphics.DrawRectangle(Pens.DarkGreen, SOGpoint.X, SOGpoint.Y, 10, ScreenRect.Y - SOGrect.Y + 10);
+                        //e.Graphics.DrawRectangle(Pens.Red,ScreenRect.X,ScreenRect.Y,10,10);
+
+
+
+                        //SOG 좌표랑 현재 좌표량 연결.
+                        using (Pen pen = new Pen(Color.FromArgb(68, 114, 196), 1))
+                        {
+                            pen.EndCap = LineCap.ArrowAnchor;
+                            e.Graphics.DrawLine(pen, ScreenRect.X, ScreenRect.Y, SOGpoint.X, SOGpoint.Y);
+                        }
+                        e.Graphics.DrawImage(img, ScreenRect.X - (ScreenRect.Width / 2), ScreenRect.Y, 10, 20);
+                        //e.Graphics.DrawRectangle(Pens.Blue, rc);
+                        e.Graphics.Transform = m;
+
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine(item.MMSI + "," + item.Latitude + "," + item.Longitude);
+                        //Console.WriteLine(item.MMSI + "," + item.Latitude + "," + item.Longitude);
                     }
                 }
             }
-           
+
+        }
+
+        /// <summary>
+        /// SOG 노트 값으로 스크린 좌표 구하기.
+        /// </summary>
+        /// <param name="pLong">경도</param>
+        /// <param name="pLat">위도</param>
+        /// <param name="pMin">분(시간) default = 60Min</param>
+        /// <returns></returns>
+        private PointD SOGConvertScreen(string pLong, string pLat, string pSOG, double pMin = 60d)
+        {
+            //#1. Latitude(위도)값을 도분 형식으로 변경
+            ConvertCoordinateUtil util = new ConvertCoordinateUtil();
+            LongLat longLat = util.ConvertDoBun(pLat);
+            //#2. 분 값에 노트(SOG) 값을 더함.
+            LongLat longLat2 = new LongLat();
+            longLat2.Degree = longLat.Degree;
+            longLat2.Min = longLat.Min + ((Convert.ToDouble(pSOG) / 60) * pMin);
+
+            //#3. 다시 도 형식으로 변경
+            string vLat = util.ConvertDo(longLat2);
+
+            //#4. SHP 좌표로 변환
+            PointD point = new PointD(Convert.ToDouble(pLong), Convert.ToDouble(vLat));
+            point = shapeMapView1.ConvertLongLatToScreen(point);
+            //#5. 스크린 좌표로 변환 후 리턴.
+
+            return point;
         }
 
         private void shapeMapView1_DoubleClick(object sender, EventArgs e)
         {
-             
+
         }
 
         private void shapeMapView1_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -513,25 +597,29 @@ namespace AIS_PARSING
             txtDetail.Text = string.Empty;
 
             StringBuilder sb = new StringBuilder();
-            
+
             foreach (var item in lstData)
             {
-                
+
                 if (item.rcImage.Contains(e.Location))
                 {
                     sb.AppendLine("----------------------");
                     sb.AppendLine("MMSI : " + item.MMSI);
                     sb.AppendLine("ROT : " + item.ROT);
                     sb.AppendLine("SOG : " + item.SOG);
-                    sb.AppendLine("ROT : " + item.ROT);
+                    sb.AppendLine("COG : " + item.COG);
                     sb.AppendLine("LONG : " + item.Longitude);
                     sb.AppendLine("LAT : " + item.Latitude);
                 }
             }
-           
+
 
             txtDetail.AppendText(sb.ToString());
+
+
         }
+
+
 
         int nSecond = 0;
         private void timer1_Tick(object sender, EventArgs e)
@@ -539,13 +627,13 @@ namespace AIS_PARSING
             PasingAndDraw();
             nSecond += timer1.Interval;
 
-            if(nSecond >= 60000 * 3)
+            if (nSecond >= 60000 * 3)
             {
                 //3분마다 수신 정보 초기화.
                 lstData.Clear();
                 nSecond = 0;
             }
-            
+
         }
 
         private void shapeMapView1_Resize(object sender, EventArgs e)
@@ -556,7 +644,7 @@ namespace AIS_PARSING
 
         private void label3_Click(object sender, EventArgs e)
         {
-            
+
             Application.Exit();
         }
 
@@ -572,7 +660,7 @@ namespace AIS_PARSING
                 this.WindowState = FormWindowState.Maximized;
                 label5.Text = "▣";
             }
-            else if(this.WindowState == FormWindowState.Maximized)
+            else if (this.WindowState == FormWindowState.Maximized)
             {
                 this.WindowState = FormWindowState.Normal;
                 label5.Text = "□";
@@ -587,8 +675,8 @@ namespace AIS_PARSING
         private void label3_MouseHover(object sender, EventArgs e)
         {
             Label lbl = (Label)sender;
-            lbl.BackColor = Color.FromArgb(62,109,181);
-            
+            lbl.BackColor = Color.FromArgb(62, 109, 181);
+
         }
 
         private void label3_MouseLeave(object sender, EventArgs e)
@@ -600,7 +688,7 @@ namespace AIS_PARSING
         Point selectPoint = new Point(0, 0);
         private void panel1_MouseDown(object sender, MouseEventArgs e)
         {
-            if(e.Button == MouseButtons.Left)
+            if (e.Button == MouseButtons.Left)
             {
                 selectPoint = e.Location;
             }
@@ -634,10 +722,65 @@ namespace AIS_PARSING
 
             PointD WGS8s = shapeMapView1.ConvertCRS(GisPointD);
             StringBuilder sb = new StringBuilder();
+            //sb.AppendFormat("[Color]:{0}", ScreenColor(e.X, e.Y).Name);
             sb.AppendFormat("[Screen]:X:{0},Y:{1} ", e.Location.X.ToString(), e.Location.Y.ToString());
             sb.AppendFormat("[Shape]:X:{0},Y:{1} ", GisPointD.X.ToString(), GisPointD.Y.ToString());
             sb.AppendFormat("[LongLat]:X:{0},Y:{1} ", WGS8s.X.ToString(), WGS8s.Y.ToString());
             label2.Text = sb.ToString();
+        }
+
+        private Color ScreenColor(int x, int y)
+        {
+            Color color = Color.Empty;
+            if (shapeMapView1 != null)
+            {
+                IntPtr hDC = NativeGDI.GetDC(shapeMapView1.Handle);
+                int colorRef = NativeGDI.GetPixel(hDC, x, y);
+                color = Color.FromArgb(
+                    (int)(colorRef & 0x000000FF),
+                    (int)(colorRef & 0x0000FF00) >> 8,
+                    (int)(colorRef & 0x00FF0000) >> 16);
+                NativeGDI.ReleaseDC(shapeMapView1.Handle, hDC);
+            }
+            return color;
+        }
+
+        private void panel2_Click(object sender, EventArgs e)
+        {
+            if (lineColor.ShowDialog() == DialogResult.OK)
+            {
+                panel2.BackColor = lineColor.Color;
+                shapeMapView1.reDraw = true;
+                shapeMapView1.LineColor = lineColor.Color;
+                shapeMapView1.Refresh();
+
+            }
+
+
+        }
+
+        private void panel3_Click(object sender, EventArgs e)
+        {
+            if (brushColor.ShowDialog() == DialogResult.OK)
+            {
+                panel3.BackColor = brushColor.Color;
+                shapeMapView1.reDraw = true;
+                shapeMapView1.BrushColor = brushColor.Color;
+                shapeMapView1.Refresh();
+
+            }
+        }
+
+        private void panel4_Click(object sender, EventArgs e)
+        {
+            if (bgColor.ShowDialog() == DialogResult.OK)
+            {
+                panel4.BackColor = bgColor.Color;
+                shapeMapView1.reDraw = true;
+                shapeMapView1.BGColor = bgColor.Color;
+                shapeMapView1.Refresh();
+
+            }
         }
     }
 

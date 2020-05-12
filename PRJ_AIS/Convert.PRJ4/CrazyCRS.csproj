@@ -44,11 +44,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConvertCoordinateUtil.cs" />
     <Compile Include="ConvertCRS.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\shapefile\Catfood.Shapefile\Catfood.Shapefile.csproj">
+      <Project>{2086f1a5-3d34-40ad-80ef-c1943411451f}</Project>
+      <Name>Catfood.Shapefile</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
